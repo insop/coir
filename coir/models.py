@@ -11,13 +11,27 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class YourCustomDEModel:
     def __init__(self, model_name="intfloat/e5-base-v2", **kwargs):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name).to(device)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        self.model = AutoModel.from_pretrained(model_name, trust_remote_code=True).to(device)
         self.model_name = model_name
-        self.tokenizer.add_eos_token = False
+        # ISS
+        # due to AttributeError: property 'add_eos_token' of 'Qwen2TokenizerFast' object has no setter
+        # self.tokenizer.add_eos_token = False
 
     def mean_pooling(self, model_output, attention_mask):
-        token_embeddings = model_output[0]  # First element of model_output contains all token embeddings
+        # Check if model_output is a list or has a dictionary-like access pattern
+        if isinstance(model_output, (list, tuple)):
+            token_embeddings = model_output[0]  # First element of model_output contains all token embeddings
+        elif isinstance(model_output, dict) and 'sentence_embeddings' in model_output:
+            token_embeddings = model_output['sentence_embeddings']
+        elif isinstance(model_output, dict) and 'last_hidden_state' in model_output:
+            token_embeddings = model_output['last_hidden_state']
+        elif hasattr(model_output, 'last_hidden_state'):
+            token_embeddings = model_output.last_hidden_state  # For models that return an object with last_hidden_state
+        else:
+            import pdb; pdb.set_trace()
+            print(model_output)
+            print(type(model_output))
         input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
         sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
         sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)

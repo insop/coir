@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 class TILDE:
     def __init__(self, model_path: str, gen_prefix: str = "", use_fast: bool = True, device: str = None, **kwargs):
-        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', use_fast=use_fast)
-        self.model = BertLMHeadModel.from_pretrained(model_path)
+        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', trust_remote_code=True, use_fast=use_fast)
+        self.model = BertLMHeadModel.from_pretrained(model_path, trust_remote_code=True)
         self.gen_prefix = gen_prefix
         _, self.bad_ids = self._clean_vocab(self.tokenizer)
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')

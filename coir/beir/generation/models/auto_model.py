@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 class QGenModel:
     def __init__(self, model_path: str, gen_prefix: str = "", use_fast: bool = True, device: str = None, **kwargs):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=use_fast)
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True, use_fast=use_fast)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_path, trust_remote_code=True)
         self.gen_prefix = gen_prefix
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         logger.info("Use pytorch device: {}".format(self.device))

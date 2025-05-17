@@ -115,12 +115,12 @@ class MonoT5:
     def get_model(model_path: str, *args, device: str = None, **kwargs) -> T5ForConditionalGeneration:
         device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         device = torch.device(device)
-        return AutoModelForSeq2SeqLM.from_pretrained(model_path, *args, **kwargs).to(device).eval()
+        return AutoModelForSeq2SeqLM.from_pretrained(model_path, trust_remote_code=True, *args, **kwargs).to(device).eval()
 
     @staticmethod
     def get_tokenizer(model_path: str, *args, **kwargs) -> T5BatchTokenizer:
         return T5BatchTokenizer(
-            AutoTokenizer.from_pretrained(model_path, use_fast=False, *args, **kwargs)
+            AutoTokenizer.from_pretrained(model_path, use_fast=False, trust_remote_code=True, *args, **kwargs)
         )
 
     @staticmethod
